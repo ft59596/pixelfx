@@ -53,7 +53,7 @@ export async function loadEffect(id, dir = FX_DIR) {
 export function renderFrames(fx, opts = {}) {
   const { meta } = fx, [W, H] = meta.size, [OX, OY] = meta.origin, m = opts.margin ?? 0;
   const w = W + m * 2, h = H + m * 2, fps = opts.fps ?? meta.fps;
-  const n = Math.max(1, Math.round(meta.duration * fps) + (meta.loop ? 0 : 1));
+  const n = Math.max(1, Math.round(meta.duration * fps) + (meta.loop || meta.endBehavior === "hold" ? 0 : 1));
   const shown = createFrame(w, h, -m, -m), bare = createFrame(w, h, -m, -m);
   const bgKind = opts.bg ?? meta.bg;
   const bg = bgKind === "none" ? null : backdrop(bgKind, w, h, OY + m);
@@ -236,7 +236,7 @@ export function spriteSheet(fx, r, name) {
     app: "https://github.com/patch-gg/pixelfx", version: "1", image: `${name}.png`, format: "RGBA8888",
     size: { w: cols * w, h: rows * h }, scale: "1",
     frameTags: [{ name: name, from: 0, to: n - 1, direction: "forward" }],
-    pixelfx: { id: fx.id, name: m.name, fps, loop: m.loop, frames: n, frameSize: [w, h], pivot: m.origin, columns: cols, ...(fx.mod.act ? { act: actTiming(fx.mod) } : {}) },
+    pixelfx: { id: fx.id, name: m.name, fps, loop: m.loop, ...(m.endBehavior ? { endBehavior: m.endBehavior } : {}), frames: n, frameSize: [w, h], pivot: m.origin, columns: cols, ...(fx.mod.act ? { act: actTiming(fx.mod) } : {}) },
   };
   return { png: img.png(), json };
 }

@@ -1,6 +1,6 @@
 # Catalog
 
-244 effects in 21 categories. Every one is a file in
+251 effects in 21 categories. Every one is a file in
 `src/fx/<category>/<name>.js`; render any of them with `node tools/render.mjs <id> --gif`.
 
 ## moves
@@ -10,6 +10,7 @@ whole attacks, wind-up to recovery, chained from the effects below.
 | effect | id | | size | what it does |
 |---|---|---|---|---|
 | Arrow shot | `moves/arrow-shot` | one-shot 1.9s | 300×74 | He raises the bow, draws to his cheek, holds his breath and looses: the string snaps forward, the arrow crosses the floor and thuds home. |
+| Augustus sword attack | `moves/augustus-sword-attack` | one-shot 1.8s | 224×192 | A black-and-gold crowned knight coils, raises his sword, steps into a golden cleave, holds contact and returns to guard with his cape settling. |
 | Dash strike | `moves/dash-strike` | one-shot 2.3s | 372×156 | A crouch, then he's across the floor in a blur of after-images and already cutting: a critical hit, a beat, and he hops back to where he started. |
 | Earth stomp | `moves/earth-stomp` | one-shot 3.46s | 290×142 | A knee comes up, the boot slams down, the floor heaves under the target and a stone spike rams up through it. |
 | Fireball throw | `moves/fireball-throw` | one-shot 6.81s | 356×244 | He gathers fire in his hand, leans back and hurls it: the ball flies, the target takes it in a blast and comes out charred. |
@@ -144,6 +145,7 @@ slashes, smears, cleaves, combos.
 | Double slash | `melee/double-slash` | one-shot 0.8s | 164×108 | A down cut, then an up cut that crosses it: the moment the X closes both strokes flash white, the crossing bursts with light and sparks, and a dotted X lingers. |
 | Hammer smash | `melee/hammer-smash` | one-shot 2s | 208×112 | A hammer drops in front in a wedge of motion: a white slam with rays, a dome of force, a dent with cracks, rocks thrown up that bounce and settle, and dust. |
 | Heavy cleave | `melee/heavy-cleave` | one-shot 1.9s | 208×116 | A glint over the head, then a thick ember arc accelerates over the top into the floor: a white slam, glowing cracks, dust rolling both ways, grit and rising embers. |
+| Red whirlwind slash · 5s | `melee/red-whirlwind-slash` | one-shot 5s | 192×128 | Crimson crescent blades orbit the waist for five seconds, with layered trailing cuts, tangential sparks and a soft finishing dissolve. |
 | Scythe reap | `melee/scythe-reap` | one-shot 2.1s | 184×116 | A slow, huge dark crescent reaps round the front with a pale ghostly edge; it hangs, then tears away from the tail into curling wisps and cold vapour. |
 | Spear sweep | `melee/spear-sweep` | one-shot 1.5s | 216×84 | A wide low sweep at shin height: a long flat crescent swings from behind the legs round the front, and the wind of it kicks a wake of dust and grit along the floor. |
 | Spin slash | `melee/spin-slash` | one-shot 0.8s | 208×104 | The blade whirls once round the waist on a tilted plane, behind the body and back in front; the closed ring flares white, dissolves into a dotted trace and throws sparks. |
@@ -239,6 +241,7 @@ heals, halos, pillars of light.
 | Heal | `holy/heal` | one-shot 1.9s | 80×104 | Petals of light bloom under the feet, a hoop of light rises up the body restoring its colour and leaving sparkles, and motes spiral up and pop into tiny hearts. |
 | Healing ring | `holy/heal-aoe` | one-shot 2.9s | 256×136 | A seed of green light sinks into the floor and a soft ring rolls out from it; the floor glows where it passes and plus signs sprout and float up. |
 | Holy pillar | `holy/holy-pillar` | one-shot 3.5s | 192×232 | Light breaks through from above: a sun opens at the top and a fan of shafts converges on the mark, pulsing, while a sigil burns on the floor; then the fan folds shut. |
+| Judgment blade | `holy/judgment-blade` | one-shot 4.2s | 320×340 | A colossal blade of light falls point-first out of the sky onto a burning sigil: a white slam, shock rings and glowing cracks, then it dissolves upward into motes. |
 | Resurrection | `holy/resurrection` | one-shot 4.8s | 192×160 | Light pours down on the fallen and life climbs back up the body; wings of light unfold, a halo forms, one great wingbeat, then the wings scatter into feathers. |
 | Smite | `holy/smite` | one-shot 2.8s | 224×176 | A glint marks the spot, then a bolt of light drops like a hammer: a white flash, a shockwave over the floor, stone chips flying and cracks that glow and cool. |
 | Sunburst | `holy/sunburst` | loop 4s | 128×128 | A white-hot core in a gold corona; long and short rays turn slowly round it, breathing, with glints running out along them that wink at the tips. |
@@ -390,6 +393,10 @@ slimes, bats, ghosts, frogs.
 | Frog | `critters/frog` | loop 2.6s | 112×88 | A frog puffs its throat, blinks, crouches and leaps to snap a buzzing fly out of the air, then lands with a squash and a puff of dust, gulps and settles. |
 | Ghost | `critters/ghost` | loop 2.4s | 96×100 | A sheet ghost bobs over the floor: its scalloped hem ripples and trails its drift, little arms flutter, it glances about and blinks, motes trickle off its hem. |
 | Jellyfish | `critters/jellyfish` | loop 3.2s | 96×120 | A see-through jellyfish pulses: its bell squeezes to shove it up and relaxes as it sinks, frilled arms and long tentacles trailing, a glow inside, bubbles drifting by. |
+| Sika deer idle | `critters/sika-deer-idle` | loop 4s | 112×104 | A warm brown spotted stag stands alert: its chest breathes, ears turn independently, eyes blink and its white-tailed rump gives a small flick. |
 | Slime | `critters/slime` | loop 1.8s | 112×88 | A glossy slime hops in place: it squashes to wind up, stretches into the jump, rounds out in the air, splats down flinging droplets that creep back, then wobbles and blinks. |
+| Slime attack | `critters/slime-attack` | one-shot 1.2s | 112×88 | A glowing slime crouches, lunges right, holds the impact and rebounds. Its recovered standing pose remains visible after the attack. |
+| Slime death | `critters/slime-death` | one-shot 1.6s | 112×88 | A struck slime flashes, shudders and swells, bursts into ballistic jelly droplets and collapses into a puddle that shrinks away. |
+| Slime move | `critters/slime-move` | loop 0.8s | 112×88 | A seamless in-place travel hop: crouch, push off, lean forward through the air and squash on landing. Translate the actor in the game. |
 | Snake | `critters/snake` | loop 2.4s | 136×56 | A snake slithers along the floor, head raised: humps rise and roll back down its patterned body to the tail, dust puffs where it touches down, its forked tongue flicks. |
 | Wisp | `critters/wisp` | loop 3.2s | 128×104 | A will-o'-the-wisp loops a figure-eight over the floor: a little soul-flame with a face, its flame tail licking up and streaming behind, shedding puffs and sparks. |

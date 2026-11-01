@@ -65,7 +65,7 @@ const inside = (P, x, y) => {
 // crescent (the rim the body leaves bare when nudged toward the light), a glossy streak hugging the top-left
 // contour with a hot spot under it, light bounced up off the floor caught just inside the lower rim
 function body(g, C, P) {
-  const yb = P.by - 1, half = P.W / 2 + 3;
+  const yb = P.by - 1, half = P.W / 2 + 3 + Math.abs(P.lean) * P.H;
   const cx = P.lean * 0.45 * P.H, cy = yb - P.H * 0.5, lx = cx - P.W * 0.24, ly = cy - P.H * 0.36;
   const lit = (x, y, k) => inside(P, lx + (x - lx) / k, ly + (y - ly) / k);
   g.clear();
@@ -207,6 +207,9 @@ export function draw(p, time, o) {
 }
 
 const DRIPS = [[1.02, -4], [1.18, 3]];
+
+// Shared jelly silhouette and shading for this creature's animation set.
+export { body as slimeBody };
 
 export function drawBack(p, time, o) {
   const t = shift(time, D, o.seed), C = fit(o.palette, 7), P = pose(t, o.hop), age = P.age;

@@ -211,3 +211,7 @@ your eyes, feed your references.
 5. **Fix the worst thing, render again.** Three rounds minimum; showpieces take more.
 6. **Act it out** if there's a character: `node tools/act.mjs <id>`. Consecutive frames, not samples.
 7. **Check**: `node tools/check.mjs <id>` until it passes clean.
+
+## Character clips that hold their final pose
+
+Set `meta.endBehavior = "hold"` for a non-looping character clip that must remain visible after it finishes. Draw the recovered pose at `t = duration`; `createFx.done()` still reports completion so the game can switch to idle. Gallery previews hold that pose before replaying. Sheet exports omit the redundant endpoint frame and carry `endBehavior` in `meta.pixelfx`. Transient one-shots still end empty.

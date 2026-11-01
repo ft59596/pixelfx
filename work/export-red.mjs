@@ -1,0 +1,14 @@
+import {loadEffect,renderFrames,spriteSheet,save,contactSheet,renderAct} from '../tools/lib/fxlib.mjs';
+import {encodePNG} from '../tools/lib/png.mjs';
+const fx=await loadEffect('melee/red-whirlwind-slash');
+const out='C:/Users/智/Documents/Codex/2026-11-01/new-chat/outputs/red-whirlwind-slash';
+const r=renderFrames(fx); r.frames.pop(); r.n=r.frames.length;
+const s=spriteSheet(fx,r,'red-whirlwind-slash');
+s.json.frames.forEach((f,i)=>f.duration=Math.round((i+1)*1000/30)-Math.round(i*1000/30));
+s.json.meta.pixelfx.duration=5;
+save(out+'/red-whirlwind-slash.png',s.png); save(out+'/red-whirlwind-slash.json',JSON.stringify(s.json,null,2));
+save(out+'/contact.png',contactSheet(fx,r,{max:20,zoom:2}));
+for(let i=0;i<150;i++) save(out+'/frames/'+String(i).padStart(3,'0')+'.png',encodePNG(r.w,r.h,r.frames[i].color));
+const acted=renderAct(fx,{fps:30});
+for(let i=0;i<acted.frames.length;i++) save(out+'/acted/'+String(i).padStart(3,'0')+'.png',encodePNG(acted.w,acted.h,acted.frames[i].color));
+console.log(out);

@@ -1,13 +1,19 @@
 // The gallery: every effect playing live from its own code. Tiles start when they scroll into view; a click
 // opens one effect with its options, a sprite sheet and the code to use it.
 
-import { effects, categories } from "../src/fx/index.js";
+import { effects, categories as sourceCategories } from "../src/fx/index.js";
 import { createFrame, clearFrame, createFx, createAct, actBounds, composite, backdrop, drawActor, painterFor, stockActor, actorAlphaOf, PAL, BACKDROPS } from "../src/core/index.js";
+
+import { effectText, categoryText, paletteText, backdropText, tagText } from "./zh-cn.js";
+const categories = sourceCategories.map(c => ({ ...c, name: categoryText[c.id]?.[0] ?? c.name, blurb: categoryText[c.id]?.[1] ?? c.blurb }));
 
 const REPO = "https://github.com/patch-gg/pixelfx";
 const FX = Object.entries(effects).map(([id, mod]) => {
   const meta = { fps: 30, bg: "dark", loop: false, duration: 1, tags: [], options: {}, ...mod.meta };
-  return { id, cat: id.split("/")[0], name: meta.name, mod: { ...mod, meta }, meta };
+  const original = { name: meta.name, desc: meta.desc, tags: [...meta.tags] };
+  Object.assign(meta, effectText[id] ?? {});
+  meta.tags = meta.tags.map(t => tagText[t] ?? t);
+  return { id, original, cat: id.split("/")[0], name: meta.name, mod: { ...mod, meta }, meta };
 });
 const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 // full-screen effects (transitions, weather, impact frames) fill a 16:9 stage edge to edge instead of floating in it
@@ -114,14 +120,14 @@ function build() {
     const list = FX.filter((f) => f.cat === c.id);
     if (!list.length) continue;
     const grid = el("div", { className: "grid" });
-    const sec = el("section", { id: c.id }, [el("div", { className: "section-head" }, [el("h2", { textContent: c.name + "." }), el("p", { textContent: c.blurb })]), grid]);
+    const sec = el("section", { id: c.id }, [el("div", { className: "section-head" }, [el("h2", { textContent: c.name }), el("p", { textContent: c.blurb })]), grid]);
     sections.push({ c, sec, list });
     for (const fx of list) {
       const cv = el("canvas", { ariaLabel: fx.name });
       const b = fx.mod.act ? actBounds(fx.mod) : null, [fw, fh] = b ? [b.x1 - b.x0, b.y1 - b.y0] : fx.meta.size;
       const fig = el("figure", { className: isScreen(fx) ? "tile big screen" : fw > 200 || fh > 170 || (b && (fw > 130 || fx.mod.act.target || fx.mod.act.targets)) ? "tile big" : "tile", tabIndex: 0 }, [
         el("div", { className: "stage" }, cv),
-        el("figcaption", {}, [el("b", { textContent: fx.name }), el("small", { textContent: fx.meta.loop ? "loop" : `${+fx.meta.duration.toFixed(2)}s` })]),
+        el("figcaption", {}, [el("b", { textContent: fx.name }), el("small", { textContent: fx.meta.loop ? "循环" : `${+fx.meta.duration.toFixed(2)}秒` })]),
       ]);
       const t = { fx, fig, cv, player: null, visible: false, hover: false };
       fig.addEventListener("click", () => openDetail(fx));
@@ -156,7 +162,7 @@ function chips() {
     b.addEventListener("click", () => setCat(id));
     box.append(b);
   };
-  mk("all", "all", FX.length);
+  mk("all", "全部", FX.length);
   for (const s of sections) mk(s.c.id, s.c.name, s.list.length);
 }
 function setCat(id, fromHash = false) {
@@ -173,7 +179,7 @@ function filter() {
     let any = false;
     for (const fx of s.list) {
       const t = tiles.find((x) => x.fx === fx);
-      const hit = (state.cat === "all" || state.cat === s.c.id) && (!q || [fx.id, fx.name, fx.meta.desc, ...fx.meta.tags].join(" ").toLowerCase().includes(q));
+      const hit = (state.cat === "all" || state.cat === s.c.id) && (!q || [fx.id, fx.name, fx.meta.desc, ...fx.meta.tags, fx.original.name, fx.original.desc, ...fx.original.tags, categoryText[fx.cat]?.[0], fx.meta.loop ? "循环" : "单次"].join(" ").toLowerCase().includes(q));
       t.fig.hidden = !hit;
       any ||= hit;
       shown += hit;
@@ -194,21 +200,19 @@ function openDetail(fx) {
   $("#d-name").textContent = m.name;
   $("#d-id").textContent = fx.id;
   $("#d-desc").textContent = m.desc;
-  const frames = Math.round(m.duration * m.fps) + (m.loop ? 0 : 1);
+  const frames = Math.round(m.duration * m.fps) + (m.loop || m.endBehavior === "hold" ? 0 : 1);
   $("#d-facts").replaceChildren(
-    ...[["kind", m.loop ? "loop" : "one-shot"], ["length", `${+m.duration.toFixed(2)} s, ${frames} frames at ${m.fps} fps`], ...(fx.mod.act ? [["acted", actFacts(fx.mod)]] : []), ["canvas", `${m.size[0]} × ${m.size[1]} px`], ["tags", m.tags.join(", ")]].flatMap(([k, v]) => [el("dt", { textContent: k }), el("dd", { textContent: v })]),
+    ...[["播放方式", m.loop ? "循环播放" : "单次播放"], ["时长", `${+m.duration.toFixed(2)} 秒，${frames} 帧，${m.fps} 帧/秒`], ...(fx.mod.act ? [["角色动作", actFacts(fx.mod)]] : []), ["画布尺寸", `${m.size[0]} × ${m.size[1]} 像素`], ["标签", m.tags.join("、")]].flatMap(([k, v]) => [el("dt", { textContent: k }), el("dd", { textContent: v })]),
   );
   // controls
-  $("#d-bg").replaceChildren(...BACKDROPS.concat("none").map((b) => btn(b, () => detail.setBg(b), b === m.bg, "bg")));
+  $("#d-bg").replaceChildren(...BACKDROPS.concat("none").map((b) => btn(backdropText[b] ?? b, () => detail.setBg(b), b === m.bg, "bg")));
   $("#d-speed").replaceChildren(...[0.25, 0.5, 1].map((s) => btn(`${s}×`, () => (detail.speed = s), s === 1, "speed")));
-  const pal = $("#d-pal");
-  pal.replaceChildren(el("option", { value: "", textContent: "its own" }), ...Object.keys(PAL).map((k) => el("option", { value: k, textContent: k })));
-  pal.value = "";
+  buildPalettes(fx);
   $("#d-actor").hidden = !m.actor;
   $("#d-actor").setAttribute("aria-pressed", "true");
   $("#d-flip").setAttribute("aria-pressed", "false");
   $("#d-play").setAttribute("aria-pressed", "true");
-  $("#d-play").textContent = "pause";
+  $("#d-play").textContent = "暂停";
   $("#d-sheet").replaceChildren();
   code(fx);
   d.showModal();
@@ -218,10 +222,10 @@ function openDetail(fx) {
 function actFacts(mod) {
   const k = mod.act.poses, lead = Math.max(0, -k[0][0]), end = k[k.length - 1][0] - mod.meta.duration, hits = (mod.act.hits ?? []).filter((h) => h.stop);
   const parts = [];
-  if (lead > 0) parts.push(`${lead.toFixed(2)} s wind-up`);
-  if (hits.length) parts.push(`${hits.length === 1 ? `${Math.round(hits[0].stop * 1000)} ms freeze` : `${hits.length} freezes`} at ${hits[0].t.toFixed(2)} s`);
-  if (!mod.meta.loop && end > 0.02) parts.push(`${end.toFixed(2)} s recovery`);
-  return parts.join(", ") || "the body moves with it";
+  if (lead > 0) parts.push(`蓄力 ${lead.toFixed(2)} 秒`);
+  if (hits.length) parts.push(`${hits[0].t.toFixed(2)} 秒处${hits.length === 1 ? `顿帧 ${Math.round(hits[0].stop * 1000)} 毫秒` : `开始，共 ${hits.length} 次顿帧`}`);
+  if (!mod.meta.loop && end > 0.02) parts.push(`收势 ${end.toFixed(2)} 秒`);
+  return parts.join("，") || "角色随特效同步动作";
 }
 function btn(label, fn, on, group) {
   const b = el("button", { className: "btn", type: "button", textContent: label });
@@ -232,9 +236,54 @@ function btn(label, fn, on, group) {
   });
   return b;
 }
+// Keep editable ramps separate from shared effect defaults and PAL presets.
+function colorHex(c) {
+  if (typeof c === "number") return "#" + [c & 255, (c >>> 8) & 255, (c >>> 16) & 255].map(v => v.toString(16).padStart(2, "0")).join("");
+  return c.length === 4 ? "#" + [...c.slice(1)].map(v => v + v).join("") : c;
+}
+function selectPalette(key, colors) {
+  if (colors) detail.opts.palette = colors.map(colorHex);
+  else delete detail.opts.palette;
+  $("#d-pal").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.palette === key)));
+  const ramp = detail.opts.palette ?? detail.fx.meta.options.palette ?? PAL.fire;
+  $("#d-pal-colors").replaceChildren(...ramp.map((c, i) => {
+    const input = el("input", { type: "color", value: colorHex(c), title: `颜色 ${i + 1}: ${colorHex(c)}` });
+    input.setAttribute("aria-label", `调色板颜色 ${i + 1}`);
+    input.addEventListener("input", () => {
+      const edited = [...(detail.opts.palette ?? ramp)].map(colorHex);
+      edited[i] = input.value;
+      detail.opts.palette = edited;
+      input.title = `颜色 ${i + 1}: ${input.value}`;
+      $("#d-pal").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", "false"));
+      detail.restart();
+      $("#d-sheet").replaceChildren();
+      code(detail.fx);
+    });
+    return input;
+  }));
+  detail.restart();
+  $("#d-sheet").replaceChildren();
+  code(detail.fx);
+}
+function buildPalettes(fx) {
+  const presets = [["", "原色", fx.meta.options.palette ?? PAL.fire], ...Object.entries(PAL).map(([k,v]) => [k,paletteText[k] ?? k,v])];
+  $("#d-pal").replaceChildren(...presets.map(([key, name, colors]) => {
+    const strip = el("span", { className: "palette-strip" }, colors.map(c => {
+      const swatch = el("span");
+      swatch.style.backgroundColor = colorHex(c);
+      return swatch;
+    }));
+    strip.setAttribute("aria-hidden", "true");
+    const b = el("button", { type: "button", className: "palette-preset", title: name }, [strip, el("span", { textContent: name })]);
+    b.dataset.palette = key;
+    b.addEventListener("click", () => selectPalette(key, key ? colors : null));
+    return b;
+  }));
+  selectPalette("", null);
+}
 function code(fx) {
   const v = fx.id.split("/")[1].replace(/-(\w)/g, (_, c) => c.toUpperCase());
-  const opts = { x: 160, y: 120, ...(detail.opts.palette ? { palette: "[…]" } : {}), ...(detail.flip ? { flip: true } : {}) };
+  const opts = { x: 160, y: 120, ...(detail.opts.palette ? { palette: detail.opts.palette } : {}), ...(detail.flip ? { flip: true } : {}) };
   const acted = !!fx.mod.act, make = acted ? "createAct" : "createFx";
   $("#d-code").textContent = [
     `import { createFrame, ${make}, composite } from "pixelfx";`,
@@ -243,16 +292,16 @@ function code(fx) {
     `const frame = createFrame(320, 180);`,
     `const fx = ${make}(${v}, ${JSON.stringify(opts).replace(/"\[…\]"/, "[…]").replace(/"(\w+)":/g, "$1: ").replace(/,/g, ", ")});`,
     ``,
-    `// every tick`,
+    `// 每帧更新`,
     `fx.update(dt);`,
-    `fx.draw(frame);          // color + light buffers`,
+    `fx.draw(frame);          // 绘制颜色与辉光`,
     `composite(frame, imageData.data, null);`,
-    ...(acted ? [``, `// your own character? read the timing: ${v}.act (poses, hits, freezes)`] : []),
+    ...(acted ? [``, `// 使用自己的角色时，可参考 ${v}.act 中的姿势、命中与顿帧时序`] : []),
   ].join("\n");
   $("#d-src").href = `${REPO}/blob/main/src/fx/${fx.id}.js`;
 }
 function sheet() {
-  const fx = detail.fx, m = fx.meta, [w, h] = m.size, n = Math.max(1, Math.round(m.duration * m.fps) + (m.loop ? 0 : 1));
+  const fx = detail.fx, m = fx.meta, [w, h] = m.size, n = Math.max(1, Math.round(m.duration * m.fps) + (m.loop || m.endBehavior === "hold" ? 0 : 1));
   const cols = Math.min(n, Math.max(1, Math.ceil(Math.sqrt((n * h) / w)))), rows = Math.ceil(n / cols);
   const cv = el("canvas", { width: cols * w, height: rows * h }), ctx = cv.getContext("2d");
   const frame = createFrame(w, h), img = ctx.createImageData(w, h);
@@ -264,8 +313,8 @@ function sheet() {
     ctx.putImageData(img, (i % cols) * w, Math.floor(i / cols) * h);
   }
   const k = Math.max(1, Math.min(4, Math.floor(1100 / (cols * w))));
-  const pic = el("img", { src: cv.toDataURL("image/png"), alt: `${m.name} sprite sheet`, width: cols * w * k, height: rows * h * k });
-  $("#d-sheet").replaceChildren(pic, el("p", { textContent: `${n} frames of ${w} × ${h} px, ${cols} across, ${m.fps} fps, ${m.loop ? "loops" : "plays once"}. Save the image, or run: node tools/render.mjs ${fx.id} --sheet` }));
+  const pic = el("img", { src: cv.toDataURL("image/png"), alt: `${m.name} 精灵表`, width: cols * w * k, height: rows * h * k });
+  $("#d-sheet").replaceChildren(pic, el("p", { textContent: `共 ${n} 帧，每帧 ${w} × ${h} 像素，每行 ${cols} 帧，${m.fps} 帧/秒，${m.loop ? "循环播放" : "单次播放"}。右键保存图片；命令行导出：node tools/render.mjs ${fx.id} --sheet` }));
 }
 function wireDetail() {
   const d = $("#detail");
@@ -275,7 +324,7 @@ function wireDetail() {
   $("#d-play").addEventListener("click", (e) => {
     detail.playing = !detail.playing;
     e.target.setAttribute("aria-pressed", String(detail.playing));
-    e.target.textContent = detail.playing ? "pause" : "play";
+    e.target.textContent = detail.playing ? "暂停" : "播放";
   });
   $("#d-again").addEventListener("click", () => detail.restart());
   $("#d-flip").addEventListener("click", (e) => {
@@ -295,23 +344,18 @@ function wireDetail() {
     detail.opts.seed = 1 + Math.floor(Math.random() * 9999);
     detail.restart();
   });
-  $("#d-pal").addEventListener("change", (e) => {
-    if (e.target.value) detail.opts.palette = PAL[e.target.value];
-    else delete detail.opts.palette;
-    detail.restart();
-    code(detail.fx);
-  });
+  $("#d-pal-reset").addEventListener("click", () => selectPalette("", null));
   $("#d-make").addEventListener("click", sheet);
   $("#d-copy").addEventListener("click", async (e) => {
     const text = $("#d-code").textContent;
     try {
       await navigator.clipboard.writeText(text);
-      e.target.textContent = "copied";
+      e.target.textContent = "已复制";
     } catch {
       getSelection().selectAllChildren($("#d-code"));
-      e.target.textContent = "selected";
+      e.target.textContent = "已选中";
     }
-    setTimeout(() => (e.target.textContent = "copy"), 1400);
+    setTimeout(() => (e.target.textContent = "复制"), 1400);
   });
 }
 
